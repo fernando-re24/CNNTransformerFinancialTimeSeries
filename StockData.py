@@ -12,11 +12,11 @@ from typing import Union, Tuple, List, Optional, Callable
 import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
 
-class StockData:
-    def __init__(Self, stocks, X, y):
-        Self.stocks = stocks
-        Self.X = X
-        Self.y = y
+class StockData(object):
+    def __init__(self, stocks, X, y):
+        self.stocks = stocks #list of stock dataframes returned by IBKRSPull
+        self.X = X
+        self.y = y
 
     #Calculate indicators w/o Pandas TA
     def calculate_sma(series, length):
@@ -190,24 +190,6 @@ class StockData:
         return df_group
 
 
-    def load_data(csvs):
-        ID = 0
-        stock_dfs = []
-        for csv in csvs:
-            df = pd.read_csv(csv)
-            df = date_index(df)
-            df = add_indicators(df)
-            df = df.iloc[200:]
-            df.fillna(0, inplace=True)
-            df['stock_id'] = ID
-            ID += 1
-            print(len(df))
-            stock_dfs.append(df)
-
-        combined_df = pd.concat(stock_dfs, ignore_index=True)
-        print(f"Combined DataFrame has {len(combined_df)} rows")
-        return combined_df
-
     def df_to_tensor(df: pd.DataFrame, batch_size: int) -> torch.Tensor:
         X = df.apply(pd.to_numeric, errors='coerce')
 
@@ -215,7 +197,7 @@ class StockData:
         data = torch.tensor(data)  # Now it's float32 in PyTorch
         data = data.unsqueeze(0)   # Add batch dimension
 
-    def createSequences(df, normalize_cols, seq_len=60, pred_offset=10):
+    def createSequences(self, df, normalize_cols, seq_len=60, pred_offset=10):
         X_list = []
         y_list = []
 
@@ -250,8 +232,8 @@ class StockData:
         X_tensor = torch.tensor(np.stack(X_list), dtype=torch.float32)
         y_tensor = torch.tensor(y_list, dtype=torch.long)
 
-        X = X_tensor
-        y = y_tensor
+        self.X = X_tensor
+        self.y = y_tensor
 
         return X_tensor, y_tensor
 
